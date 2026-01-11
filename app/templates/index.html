@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Video Search - Process Videos</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .pulse-animation {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+    </style>
+</head>
+<body class="bg-base-200 min-h-screen">
+    <!-- Navbar -->
+    <div class="navbar bg-base-100 shadow-lg">
+        <div class="flex-1">
+            <a class="btn btn-ghost text-xl">
+                <i class="fas fa-video text-primary"></i>
+                <span class="ml-2">YouTube Video Search</span>
+            </a>
+        </div>
+        <div class="flex-none">
+            <label class="swap swap-rotate">
+                <input type="checkbox" id="theme-toggle" />
+                <i class="swap-on fas fa-moon text-xl"></i>
+                <i class="swap-off fas fa-sun text-xl"></i>
+            </label>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <!-- Hero Section -->
+        <div class="hero gradient-bg rounded-2xl shadow-2xl mb-8">
+            <div class="hero-content text-center text-white py-12">
+                <div class="max-w-md">
+                    <h1 class="text-5xl font-bold mb-4">
+                        <i class="fas fa-search"></i>
+                        Search YouTube Videos
+                    </h1>
+                    <p class="text-lg opacity-90">
+                        Process YouTube videos and search through their transcripts with AI-powered semantic search
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Card -->
+        <div class="card bg-base-100 shadow-xl max-w-3xl mx-auto">
+            <div class="card-body">
+                <h2 class="card-title text-2xl mb-4">
+                    <i class="fas fa-link text-primary"></i>
+                    Process YouTube Video
+                </h2>
+
+                <!-- Captions Warning -->
+                <div class="alert alert-warning shadow-lg mb-4">
+                    <i class="fas fa-exclamation-triangle text-2xl"></i>
+                    <div>
+                        <h3 class="font-bold text-lg">Important Requirement</h3>
+                        <p class="text-sm"><strong>Only videos with captions/subtitles will work!</strong> The video must have English captions enabled (auto-generated or manual).</p>
+                    </div>
+                </div>
+
+                <!-- URL Input Form -->
+                <form id="video-form" class="space-y-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold">YouTube URL</span>
+                        </label>
+                        <div class="join w-full">
+                            <input 
+                                type="text" 
+                                id="youtube-url" 
+                                placeholder="https://www.youtube.com/watch?v=..." 
+                                class="input input-bordered join-item flex-1"
+                                required
+                            />
+                            <button type="submit" class="btn btn-primary join-item" id="submit-btn">
+                                <i class="fas fa-paper-plane"></i>
+                                Process
+                            </button>
+                        </div>
+                        <label class="label">
+                            <span class="label-text-alt">Supported formats: youtube.com/watch, youtu.be, embed URLs</span>
+                        </label>
+                    </div>
+
+                    <!-- Error Alert -->
+                    <div id="error-alert" class="alert alert-error hidden">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span id="error-message"></span>
+                    </div>
+
+                    <!-- Loading State -->
+                    <div id="loading-state" class="hidden">
+                        <div class="card bg-base-200">
+                            <div class="card-body items-center text-center">
+                                <span class="loading loading-spinner loading-lg text-primary"></span>
+                                <p class="text-lg font-semibold mt-4">Processing video...</p>
+                                <p class="text-sm opacity-70">This may take a few moments</p>
+                                <div class="flex gap-2 mt-4">
+                                    <div class="badge badge-outline pulse-animation">Fetching transcript</div>
+                                    <div class="badge badge-outline pulse-animation" style="animation-delay: 0.3s;">Creating segments</div>
+                                    <div class="badge badge-outline pulse-animation" style="animation-delay: 0.6s;">Generating embeddings</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Success State -->
+                    <div id="success-state" class="hidden">
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i>
+                            <div class="flex-1">
+                                <h3 class="font-bold">Video processed successfully!</h3>
+                                <div class="text-sm opacity-90" id="success-details"></div>
+                            </div>
+                        </div>
+                        <div class="mt-4 text-center">
+                            <a id="video-link" href="#" class="btn btn-primary btn-lg">
+                                <i class="fas fa-play-circle"></i>
+                                Open Video & Search Transcript
+                            </a>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Try This Video -->
+                <div class="divider">Try This Video</div>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <p class="font-semibold">Example video with captions</p>
+                        <p class="text-sm">This video has English captions and will work with our system:</p>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <button type="button" class="btn btn-outline btn-sm w-full example-video-btn" data-url="https://youtu.be/LPZh9BOjkQs">
+                        <i class="fas fa-play-circle"></i>
+                        Large Language Models explained briefly (Example Video with Captions)
+                    </button>
+                </div>
+
+                <!-- Instructions -->
+                <div class="divider">How it works</div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="card bg-base-200">
+                        <div class="card-body items-center text-center">
+                            <div class="text-4xl text-primary mb-2">
+                                <i class="fas fa-link"></i>
+                            </div>
+                            <h3 class="font-bold">1. Paste URL</h3>
+                            <p class="text-sm opacity-70">Enter a YouTube video URL with captions</p>
+                        </div>
+                    </div>
+                    <div class="card bg-base-200">
+                        <div class="card-body items-center text-center">
+                            <div class="text-4xl text-primary mb-2">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <h3 class="font-bold">2. Process</h3>
+                            <p class="text-sm opacity-70">We analyze the transcript with AI</p>
+                        </div>
+                    </div>
+                    <div class="card bg-base-200">
+                        <div class="card-body items-center text-center">
+                            <div class="text-4xl text-primary mb-2">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <h3 class="font-bold">3. Search</h3>
+                            <p class="text-sm opacity-70">Find any moment in the video</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Captions Help -->
+                <div class="divider">Need help?</div>
+                <div class="alert">
+                    <i class="fas fa-question-circle text-primary"></i>
+                    <div class="text-sm">
+                        <p class="font-semibold">How to check if a video has captions:</p>
+                        <ol class="list-decimal list-inside mt-1 space-y-1">
+                            <li>Open the YouTube video</li>
+                            <li>Click the "CC" (Closed Captions) button</li>
+                            <li>If you see caption options, the video will work</li>
+                            <li>If the button is grayed out, choose another video</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recently Processed (Optional Enhancement) -->
+        <div class="text-center mt-8 opacity-70">
+            <p class="text-sm">
+                <i class="fas fa-info-circle"></i>
+                Videos are processed and stored for semantic search
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Theme toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        const html = document.documentElement;
+        
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        html.setAttribute('data-theme', savedTheme);
+        themeToggle.checked = savedTheme === 'dark';
+        
+        themeToggle.addEventListener('change', (e) => {
+            const theme = e.target.checked ? 'dark' : 'light';
+            html.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+        });
+
+        // Form handling
+        const form = document.getElementById('video-form');
+        const urlInput = document.getElementById('youtube-url');
+        const submitBtn = document.getElementById('submit-btn');
+        const errorAlert = document.getElementById('error-alert');
+        const errorMessage = document.getElementById('error-message');
+        const loadingState = document.getElementById('loading-state');
+        const successState = document.getElementById('success-state');
+        const successDetails = document.getElementById('success-details');
+        const videoLink = document.getElementById('video-link');
+
+        // YouTube URL validation
+        function isValidYouTubeUrl(url) {
+            const patterns = [
+                /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([a-zA-Z0-9_-]{11})/,
+                /youtube\.com\/watch\?.*v=([a-zA-Z0-9_-]{11})/
+            ];
+            return patterns.some(pattern => pattern.test(url));
+        }
+
+        // Show error
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorAlert.classList.remove('hidden');
+            setTimeout(() => {
+                errorAlert.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Reset states
+        function resetStates() {
+            errorAlert.classList.add('hidden');
+            loadingState.classList.add('hidden');
+            successState.classList.add('hidden');
+        }
+
+        // Form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const url = urlInput.value.trim();
+            
+            // Validate URL
+            if (!url) {
+                showError('Please enter a YouTube URL');
+                return;
+            }
+            
+            if (!isValidYouTubeUrl(url)) {
+                showError('Please enter a valid YouTube URL');
+                return;
+            }
+            
+            // Reset states and show loading
+            resetStates();
+            loadingState.classList.remove('hidden');
+            submitBtn.disabled = true;
+            urlInput.disabled = true;
+            
+            try {
+                // Call API
+                const response = await fetch('/api/process', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url: url })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.detail || data.message || 'Failed to process video');
+                }
+                
+                // Show success
+                loadingState.classList.add('hidden');
+                successState.classList.remove('hidden');
+                
+                // Update success details
+                successDetails.innerHTML = `
+                    <strong>Video ID:</strong> ${data.video_id}<br>
+                    <strong>Segments:</strong> ${data.segment_count}<br>
+                    <strong>Duration:</strong> ${formatDuration(data.total_duration)}
+                `;
+                
+                // Update video link
+                videoLink.href = `/video/${data.video_id}`;
+                
+                // Clear form
+                urlInput.value = '';
+                
+            } catch (error) {
+                console.error('Error processing video:', error);
+                loadingState.classList.add('hidden');
+                showError(error.message || 'An error occurred while processing the video');
+            } finally {
+                submitBtn.disabled = false;
+                urlInput.disabled = false;
+            }
+        });
+
+        // Format duration helper
+        function formatDuration(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}m ${secs}s`;
+        }
+
+        // Real-time URL validation feedback
+        urlInput.addEventListener('input', (e) => {
+            const url = e.target.value.trim();
+            if (url && !isValidYouTubeUrl(url)) {
+                urlInput.classList.add('input-error');
+            } else {
+                urlInput.classList.remove('input-error');
+            }
+        });
+
+        // Example video button
+        document.querySelectorAll('.example-video-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                urlInput.value = e.currentTarget.dataset.url;
+                urlInput.classList.remove('input-error');
+            });
+        });
+
+        // Auto-focus on input
+        urlInput.focus();
+    </script>
+</body>
+</html>
+
+

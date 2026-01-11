@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Search - {{ video_id }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0;
+            overflow: hidden;
+        }
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .search-result-item:hover {
+            transform: translateX(4px);
+            transition: transform 0.2s ease;
+        }
+        .timestamp-link {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .timestamp-link:hover {
+            color: #667eea;
+            font-weight: bold;
+        }
+        .score-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        #sidebar {
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="bg-base-200">
+    <!-- Navbar -->
+    <div class="navbar bg-base-100 shadow-lg sticky top-0 z-50">
+        <div class="flex-1">
+            <a href="/" class="btn btn-ghost text-xl">
+                <i class="fas fa-arrow-left"></i>
+                <span class="ml-2">Back to Home</span>
+            </a>
+        </div>
+        <div class="flex-none gap-2">
+            <div class="badge badge-primary badge-lg">
+                <i class="fas fa-film mr-2"></i>
+                {{ video_id }}
+            </div>
+            <label class="swap swap-rotate">
+                <input type="checkbox" id="theme-toggle" />
+                <i class="swap-on fas fa-moon text-xl"></i>
+                <i class="swap-off fas fa-sun text-xl"></i>
+            </label>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Video Player Section -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Video Player Card -->
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body p-0">
+                        <div class="video-container">
+                            <iframe 
+                                id="youtube-player"
+                                src="https://www.youtube.com/embed/{{ video_id }}?enablejsapi=1" 
+                                frameborder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                allowfullscreen>
+                            </iframe>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search Results Section -->
+                <div class="card bg-base-100 shadow-xl" id="results-card">
+                    <div class="card-body">
+                        <h2 class="card-title">
+                            <i class="fas fa-list-ul text-primary"></i>
+                            Search Results
+                        </h2>
+                        
+                        <!-- Empty State -->
+                        <div id="empty-state" class="text-center py-12">
+                            <div class="text-6xl mb-4 opacity-20">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold mb-2">Search the Video</h3>
+                            <p class="opacity-70">Enter a query in the search box to find relevant moments</p>
+                        </div>
+
+                        <!-- Results List -->
+                        <div id="results-list" class="space-y-3 hidden">
+                            <!-- Results will be inserted here -->
+                        </div>
+
+                        <!-- No Results State -->
+                        <div id="no-results-state" class="text-center py-12 hidden">
+                            <div class="text-6xl mb-4 opacity-20">
+                                <i class="fas fa-inbox"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold mb-2">No Results Found</h3>
+                            <p class="opacity-70">Try different search terms</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Sidebar -->
+            <div class="lg:col-span-1">
+                <div class="card bg-base-100 shadow-xl sticky top-24">
+                    <div class="card-body" id="sidebar">
+                        <h2 class="card-title mb-4">
+                            <i class="fas fa-search gradient-text"></i>
+                            <span class="gradient-text">Semantic Search</span>
+                        </h2>
+
+                        <!-- Search Form -->
+                        <form id="search-form" class="space-y-4">
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-semibold">Search Query</span>
+                                </label>
+                                <textarea 
+                                    id="search-query" 
+                                    class="textarea textarea-bordered h-24" 
+                                    placeholder="What are you looking for?&#10;e.g., 'machine learning basics' or 'funny moments'"
+                                    required
+                                ></textarea>
+                                <label class="label">
+                                    <span class="label-text-alt">
+                                        <i class="fas fa-magic"></i>
+                                        AI-powered semantic search
+                                    </span>
+                                </label>
+                            </div>
+
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text">Number of Results</span>
+                                </label>
+                                <input 
+                                    type="range" 
+                                    id="result-limit" 
+                                    min="1" 
+                                    max="20" 
+                                    value="5" 
+                                    class="range range-primary" 
+                                    step="1" 
+                                />
+                                <div class="w-full flex justify-between text-xs px-2 mt-2">
+                                    <span>1</span>
+                                    <span>5</span>
+                                    <span>10</span>
+                                    <span>15</span>
+                                    <span>20</span>
+                                </div>
+                                <div class="text-center mt-2">
+                                    <span class="badge badge-outline" id="limit-display">5 results</span>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-full" id="search-btn">
+                                <i class="fas fa-search"></i>
+                                Search Transcript
+                            </button>
+                        </form>
+
+                        <!-- Loading State -->
+                        <div id="search-loading" class="hidden text-center py-6">
+                            <span class="loading loading-spinner loading-lg text-primary"></span>
+                            <p class="mt-2 text-sm">Searching...</p>
+                        </div>
+
+                        <!-- Error Alert -->
+                        <div id="search-error" class="alert alert-error hidden mt-4">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span id="search-error-message"></span>
+                        </div>
+
+                        <!-- Search Tips -->
+                        <div class="divider">Tips</div>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex items-start gap-2">
+                                <i class="fas fa-lightbulb text-warning mt-1"></i>
+                                <p>Search uses AI to understand meaning, not just keywords</p>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <i class="fas fa-clock text-info mt-1"></i>
+                                <p>Click timestamps to jump to that moment in the video</p>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <i class="fas fa-star text-success mt-1"></i>
+                                <p>Higher scores indicate better matches</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const videoId = '{{ video_id }}';
+        
+        // Theme toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        const html = document.documentElement;
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        html.setAttribute('data-theme', savedTheme);
+        themeToggle.checked = savedTheme === 'dark';
+        
+        themeToggle.addEventListener('change', (e) => {
+            const theme = e.target.checked ? 'dark' : 'light';
+            html.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+        });
+
+        // Elements
+        const searchForm = document.getElementById('search-form');
+        const searchQuery = document.getElementById('search-query');
+        const searchBtn = document.getElementById('search-btn');
+        const resultLimit = document.getElementById('result-limit');
+        const limitDisplay = document.getElementById('limit-display');
+        const searchLoading = document.getElementById('search-loading');
+        const searchError = document.getElementById('search-error');
+        const searchErrorMessage = document.getElementById('search-error-message');
+        const emptyState = document.getElementById('empty-state');
+        const noResultsState = document.getElementById('no-results-state');
+        const resultsList = document.getElementById('results-list');
+        const youtubePlayer = document.getElementById('youtube-player');
+
+        // Update limit display
+        resultLimit.addEventListener('input', (e) => {
+            const value = e.target.value;
+            limitDisplay.textContent = `${value} result${value > 1 ? 's' : ''}`;
+        });
+
+        // Format timestamp
+        function formatTimestamp(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Jump to timestamp in video
+        function jumpToTimestamp(seconds) {
+            // Update iframe src with time parameter
+            const currentSrc = youtubePlayer.src.split('?')[0].split('&')[0];
+            youtubePlayer.src = `${currentSrc}?start=${Math.floor(seconds)}&autoplay=1&enablejsapi=1`;
+            
+            // Scroll to video
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // Show error
+        function showError(message) {
+            searchErrorMessage.textContent = message;
+            searchError.classList.remove('hidden');
+            setTimeout(() => {
+                searchError.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Create result card
+        function createResultCard(result, index) {
+            const card = document.createElement('div');
+            card.className = 'card bg-base-200 shadow-md search-result-item hover:shadow-lg transition-all';
+            
+            // Calculate relevance percentage
+            const relevancePercent = Math.round(result.score * 100);
+            
+            card.innerHTML = `
+                <div class="card-body p-4">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="badge badge-primary">#${index + 1}</span>
+                        <div class="flex gap-2 items-center">
+                            <div class="score-badge text-white text-xs px-2 py-1 rounded-full">
+                                ${relevancePercent}% match
+                            </div>
+                            <button 
+                                class="btn btn-circle btn-sm btn-primary timestamp-btn"
+                                data-timestamp="${result.start_time}"
+                                title="Jump to this moment"
+                            >
+                                <i class="fas fa-play"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <p class="text-sm mb-3">${escapeHtml(result.text)}</p>
+                    
+                    <div class="flex gap-2 items-center text-xs opacity-70">
+                        <i class="fas fa-clock"></i>
+                        <span class="timestamp-link" data-timestamp="${result.start_time}">
+                            ${formatTimestamp(result.start_time)}
+                        </span>
+                        <span>-</span>
+                        <span>${formatTimestamp(result.end_time)}</span>
+                        <span class="ml-auto">
+                            <i class="fas fa-stopwatch"></i>
+                            ${Math.round(result.duration)}s
+                        </span>
+                    </div>
+                </div>
+            `;
+            
+            return card;
+        }
+
+        // Escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Display results
+        function displayResults(results) {
+            // Hide states
+            emptyState.classList.add('hidden');
+            noResultsState.classList.add('hidden');
+            resultsList.classList.add('hidden');
+            
+            if (results.length === 0) {
+                noResultsState.classList.remove('hidden');
+                return;
+            }
+            
+            // Clear previous results
+            resultsList.innerHTML = '';
+            
+            // Add results
+            results.forEach((result, index) => {
+                const card = createResultCard(result, index);
+                resultsList.appendChild(card);
+            });
+            
+            resultsList.classList.remove('hidden');
+            
+            // Add click handlers for timestamps
+            document.querySelectorAll('.timestamp-link, .timestamp-btn').forEach(el => {
+                el.addEventListener('click', (e) => {
+                    const timestamp = parseFloat(e.currentTarget.dataset.timestamp);
+                    jumpToTimestamp(timestamp);
+                });
+            });
+        }
+
+        // Search form submission
+        searchForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const query = searchQuery.value.trim();
+            const limit = parseInt(resultLimit.value);
+            
+            if (!query) {
+                showError('Please enter a search query');
+                return;
+            }
+            
+            // Show loading
+            searchLoading.classList.remove('hidden');
+            searchBtn.disabled = true;
+            searchError.classList.add('hidden');
+            
+            try {
+                const response = await fetch('/api/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        query: query,
+                        video_id: videoId,
+                        limit: limit
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.detail || data.message || 'Search failed');
+                }
+                
+                // Display results
+                displayResults(data.results || []);
+                
+            } catch (error) {
+                console.error('Search error:', error);
+                showError(error.message || 'An error occurred during search');
+                emptyState.classList.remove('hidden');
+            } finally {
+                searchLoading.classList.add('hidden');
+                searchBtn.disabled = false;
+            }
+        });
+
+        // Auto-focus search input
+        searchQuery.focus();
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchQuery.focus();
+            }
+        });
+
+        // Add smooth scrolling to results
+        if (window.location.hash) {
+            setTimeout(() => {
+                const element = document.querySelector(window.location.hash);
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth' });
+                }
+            }, 100);
+        }
+    </script>
+</body>
+</html>
+
+
