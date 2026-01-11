@@ -699,7 +699,7 @@ We used **RAG for Code Generation**:
 - [ ] Show terminal logs during processing
 
 ### **Success Metrics:**
-- [ ] Audience sees Claude search patterns
+- [ ] Everyone sees Claude search patterns
 - [ ] Working backend generated
 - [ ] Beautiful frontend generated
 - [ ] Video processing works
