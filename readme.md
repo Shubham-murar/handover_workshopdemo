@@ -628,55 +628,6 @@ uvicorn app.main:app --reload --port 7860
 
 Write-Host "✅ System reset. Open Claude Desktop." -ForegroundColor Green
 ```
-
----
-
-## **📚 README.md for Participants**
-
-```markdown
-# YouTube Video Search Workshop
-
-## What We Built
-A complete YouTube Video Search application that:
-- Processes YouTube videos and extracts transcripts
-- Creates searchable embeddings using AI
-- Allows semantic search within videos
-- Jumps to exact timestamps
-
-## How We Built It (The Magic)
-We used **RAG for Code Generation**:
-1. **Retrieve**: Claude searches Qdrant for code patterns
-2. **Augment**: Patterns teach Claude our coding standards
-3. **Generate**: Claude creates production-ready code
-
-## Technologies Used
-- **Claude Desktop** with MCP (Model Context Protocol)
-- **Qdrant** - Vector database for pattern storage
-- **FastAPI** - Backend framework
-- **Sentence Transformers** - For embeddings
-- **DaisyUI** - Frontend components
-
-## Key Concepts Demonstrated
-1. **MCP (Model Context Protocol)**: Lets AI use external tools
-2. **Vector Databases for Development**: Store code patterns as embeddings
-3. **AI as Collaborative Developer**: Teaching AI your coding patterns
-4. **Semantic Search**: Finding meaning, not just keywords
-
-## Getting Started (After Workshop)
-1. Clone this repository
-2. Run `.\clean.ps1` to configure MCP
-3. Start Qdrant: `docker run -d -p 6333:6333 qdrant/qdrant`
-4. Run: `uvicorn app.main:app --reload --port 7860`
-5. Open: http://localhost:7860
-
-## Extend This Project
-- Add user authentication
-- Create video playlists
-- Add collaborative features
-- Deploy to cloud
-- Add more pattern categories to Qdrant
-```
-
 ---
 
 ## **🎯 FINAL PREPARATION CHECKLIST**
