@@ -551,7 +551,7 @@ pip install -r requirements.txt
 
 ---
 
-## **PART 5: HOST'S QUICK REFERENCE**
+## **PART 5: QUICK REFERENCE**
 
 ### **Timeline (90-minute workshop):**
 ```
